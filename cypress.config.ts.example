@@ -3,8 +3,8 @@ import { defineConfig } from "cypress";
 export default defineConfig({
     viewportWidth: 1366,
     viewportHeight: 1024,
-    // projectId of the dedicated 16th FC project in Cypress Cloud.
-    projectId: "REPLACE_WITH_16FC_PROJECT_ID",
+    // "XVIFC" project in Cypress Cloud, dedicated to 16th FC.
+    projectId: "56cxp5",
 
     env: {
         XVFCULB_ID: process.env.XVFCULB_ID,
