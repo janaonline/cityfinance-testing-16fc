@@ -1,0 +1,7 @@
+/node_modules
+cypress.config.ts
+.history
+.env
+cypress/videos
+cypress/screenshots
+cypress/downloads

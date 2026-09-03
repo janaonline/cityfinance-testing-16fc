@@ -1,0 +1,28 @@
+name: Integration Testing - 16th FC
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 15 * * *"
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cypress install
+        run: |
+          echo Create cypress.config.ts from example
+          cp cypress.config.ts.example cypress.config.ts
+          yarn install
+      - name: Cypress run
+        run: |
+          yarn run cypress run --record --key ${{ secrets.CYPRESS_DASHBOARD_KEY }}
+        env:
+          XVFCULB_ID: ${{ secrets.XVFCULB_ID }}
+          XVIFCULB_pass: ${{ secrets.XVIFCULB_PASS }}

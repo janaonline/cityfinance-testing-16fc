@@ -1,0 +1,20 @@
+{
+  "name": "cityfinance-testing-16fc",
+  "version": "1.0.0",
+  "description": "Cypress test cases for the 16th Finance Commission (16th FC) city finance app",
+  "main": "index.ts",
+  "scripts": {
+    "cy:open": "set ELECTRON_RUN_AS_NODE=&& cypress open"
+  },
+  "author": "Abhishek",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^13.13.3",
+    "cypress-file-upload": "^5.0.8",
+    "cypress-xpath": "^2.0.1",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

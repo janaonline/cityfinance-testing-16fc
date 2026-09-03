@@ -1,0 +1,21 @@
+import { defineConfig } from "cypress";
+
+export default defineConfig({
+    viewportWidth: 1366,
+    viewportHeight: 1024,
+    // projectId of the dedicated 16th FC project in Cypress Cloud.
+    projectId: "REPLACE_WITH_16FC_PROJECT_ID",
+
+    env: {
+        XVFCULB_ID: process.env.XVFCULB_ID,
+        XVIFCULB_pass: process.env.XVIFCULB_pass,
+    },
+    defaultCommandTimeout: 8000,
+    video: true,
+    e2e: {
+        setupNodeEvents(on, config) {
+            // implement node event listeners here
+        },
+        baseUrl: "https://dev.cityfinance.in",
+    },
+});
