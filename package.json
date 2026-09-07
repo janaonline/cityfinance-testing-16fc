@@ -4,7 +4,8 @@
   "description": "Cypress test cases for the 16th Finance Commission (16th FC) city finance app",
   "main": "index.ts",
   "scripts": {
-    "cy:open": "set ELECTRON_RUN_AS_NODE=&& cypress open"
+    "cy:open": "set ELECTRON_RUN_AS_NODE=&& cypress open",
+    "cy:staging": "set ELECTRON_RUN_AS_NODE=&& cypress run --headed --browser chrome --config baseUrl=https://staging.cityfinance.in --spec \"cypress/e2e/XVIFC26/UserAcessManagement.cy.ts\""
   },
   "author": "Abhishek",
   "license": "ISC",
