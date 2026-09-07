@@ -6,7 +6,8 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 15 * * *"
+    # 15:30 UTC = 9:00 PM IST daily. GitHub Actions cron is always UTC.
+    - cron: "30 15 * * *"
 
 jobs:
   cypress-run:
