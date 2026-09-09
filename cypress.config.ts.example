@@ -10,6 +10,10 @@ export default defineConfig({
     env: {
         XVFCULB_ID: process.env.XVFCULB_ID,
         XVIFCULB_pass: process.env.XVIFCULB_pass,
+        STATE_USER_ID: process.env.STATE_USER_ID,
+        STATE_PASSWORD: process.env.STATE_PASSWORD,
+        MOHUA_USER_ID: process.env.MOHUA_USER_ID,
+        MOHUA_PASSWORD: process.env.MOHUA_PASSWORD,
     },
     defaultCommandTimeout: 8000,
     video: true,
@@ -18,5 +22,10 @@ export default defineConfig({
             // implement node event listeners here
         },
         baseUrl: "https://staging.cityfinance.in",
+        // *Mutating.cy.ts specs perform real, one-way writes against shared
+        // staging accounts (e.g. SLB "Save as Draft"/"Submit to State DMA").
+        // Excluded from every default run (CI included) — only executed by
+        // explicitly targeting the file with --spec.
+        excludeSpecPattern: ["**/*Mutating.cy.ts"],
     },
 });

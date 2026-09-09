@@ -27,3 +27,7 @@ jobs:
         env:
           XVFCULB_ID: ${{ secrets.XVFCULB_ID }}
           XVIFCULB_pass: ${{ secrets.XVIFCULB_PASS }}
+          STATE_USER_ID: ${{ secrets.STATE_USER_ID }}
+          STATE_PASSWORD: ${{ secrets.STATE_PASSWORD }}
+          MOHUA_USER_ID: ${{ secrets.MOHUA_USER_ID }}
+          MOHUA_PASSWORD: ${{ secrets.MOHUA_PASSWORD }}

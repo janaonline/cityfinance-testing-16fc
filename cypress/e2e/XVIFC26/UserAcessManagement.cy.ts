@@ -33,6 +33,11 @@ function loginAsUlb(censusCode = XVFCULB_ID, password = XVIFCULB_pass) {
         cy.contains(/Continue|People and Roles/).click();
       }
     });
+
+  // Whichever branch above ran, make sure we've actually left the "Select
+  // Financial Year" gate before continuing — its "2026-27" year tile can
+  // otherwise be mistaken for the workspace itself by a later check.
+  cy.location('pathname', { timeout: 20000 }).should('not.include', '/year');
 }
 
 describe("XVI-FC Grant | Login (ULB)", () => {
@@ -192,5 +197,220 @@ describe("XVI-FC Grant | User Access Management (ULB)", () => {
     cy.contains('Enter a valid 10-digit number').should('be.visible');
     cy.contains('Enter a valid email address.').should('be.visible');
     cy.contains('button', 'Save Changes').should('be.disabled');
+  });
+});
+
+// -----------------------------------------------------------------------
+// People and Roles — STATE / MOHUA
+//
+// Every selector, subtitle, placeholder, validation message, and
+// permission-matrix row/dot below was confirmed against the live app on
+// staging.cityfinance.in before being written. Two corrections worth
+// flagging because they contradict a plausible-sounding assumption:
+//   - STATE's member table DOES have a "Last Active" column — it is not
+//     MOHUA-only.
+//   - Several headings/badges render visually uppercase via CSS
+//     (text-transform), but their actual DOM text is Title Case (e.g. the
+//     "Role Permission Matrix" heading, the "You" badge, the "Admin" role
+//     badge) — cy.contains() matches the real text, not the CSS look.
+// -----------------------------------------------------------------------
+
+const STATE_USER_ID = Cypress.env("STATE_USER_ID");
+const STATE_PASSWORD = Cypress.env("STATE_PASSWORD");
+const MOHUA_USER_ID = Cypress.env("MOHUA_USER_ID");
+const MOHUA_PASSWORD = Cypress.env("MOHUA_PASSWORD");
+
+function loginAndOpenPeopleAndRoles(role: string, identifier: string, password: string) {
+  visitLogin();
+  cy.contains('span.role-card__label', role).click();
+  cy.get(IDENTIFIER_INPUT).type(identifier, { force: true });
+  cy.get(PASSWORD_INPUT).type(password, { force: true, log: false });
+  cy.contains('button', 'Sign In').click();
+
+  cy.contains(/Continue|People and Roles/, { timeout: 20000 })
+    .invoke('text')
+    .then((text: string) => {
+      if (text.includes('Continue')) {
+        cy.contains(/Continue|People and Roles/).click();
+      }
+    });
+  cy.contains('People and Roles', { timeout: 20000 }).click({ force: true });
+  cy.contains('Team & Roles', { timeout: 20000 }).should('be.visible');
+}
+
+describe("XVI-FC Grant | People and Roles (STATE)", () => {
+  beforeEach(() => {
+    loginAndOpenPeopleAndRoles('STATE', STATE_USER_ID, STATE_PASSWORD);
+  });
+
+  it("shows the STATE-specific subtitle and a Last Active column", () => {
+    cy.contains("Manage who has access and what they can do.").should("be.visible");
+    cy.get("th").should("contain.text", "Last Active");
+  });
+
+  it("opens the Add Member form with the STATE-specific fields", () => {
+    cy.contains("button", "Add Member").click({ force: true });
+    cy.get('input[placeholder="e.g. Anjali Sharma"]').should("be.visible");
+    cy.get('input[placeholder="e.g. Deputy Director"]').should("be.visible");
+    cy.contains("Assign Role").should("be.visible");
+    cy.get('input[placeholder="official@state.gov.in"]').should("be.visible");
+    cy.get('input[placeholder="10-digit number"]').should("be.visible");
+    cy.contains("button", "Cancel").click({ force: true });
+  });
+
+  it("only allows assigning Reviewer or Viewer to a new member (never Admin)", () => {
+    cy.contains("button", "Add Member").click({ force: true });
+    cy.get("mat-select").click({ force: true });
+    cy.get("mat-option").should("have.length", 2);
+    cy.contains("mat-option", "Reviewer").should("be.visible");
+    cy.contains("mat-option", "Viewer").should("be.visible");
+    cy.get("body").type("{esc}");
+    cy.contains("button", "Cancel").click({ force: true });
+  });
+
+  it("validates required fields on an empty Add Member submission", () => {
+    cy.contains("button", "Add Member").click({ force: true });
+    cy.contains("button", "Send Invite").click({ force: true });
+    cy.contains("Full name is required.").should("be.visible");
+    cy.contains("Designation is required.").should("be.visible");
+    cy.contains("Email address is required.").should("be.visible");
+    cy.contains("Mobile number is required.").should("be.visible");
+    cy.contains("button", "Cancel").click({ force: true });
+  });
+
+  it("Cancel closes the Add Member form without leaving it open", () => {
+    cy.contains("button", "Add Member").click({ force: true });
+    cy.contains("button", "Send Invite").should("be.visible");
+    cy.contains("button", "Cancel").click({ force: true });
+    cy.contains("button", "Send Invite").should("not.exist");
+  });
+
+  it("opens the Role Permission Matrix with STATE/ULB-oriented permissions", () => {
+    cy.contains("button", "Permission matrix").click({ force: true });
+    cy.contains("Role Permission Matrix").should("be.visible");
+    [
+      "View status and reports",
+      "View dashboards",
+      "Upload state-level documents",
+      "Review ULB submissions",
+      "Message users",
+      "Approve ULB submissions",
+      "Prepare grant letters",
+      "Recommend exemptions",
+      "Final submit to MoHUA",
+      "Manage users",
+    ].forEach((label) => {
+      cy.contains(label).should("be.visible");
+    });
+  });
+
+  it("Reviewer CAN approve ULB submissions on the STATE matrix", () => {
+    cy.contains("button", "Permission matrix").click({ force: true });
+    cy.contains("tr", "Approve ULB submissions").within(() => {
+      cy.get("td").eq(2).find(".perm-dot--yes").should("exist"); // Reviewer column (td[0] is the row label)
+    });
+  });
+
+  it("shows an inline 'Sure?' confirm step before removing a member", () => {
+    cy.get("button.action-icon-btn--delete").first().click({ force: true });
+    cy.contains("Sure?").should("be.visible");
+  });
+});
+
+describe("XVI-FC Grant | People and Roles (MOHUA)", () => {
+  beforeEach(() => {
+    loginAndOpenPeopleAndRoles('MOHUA', MOHUA_USER_ID, MOHUA_PASSWORD);
+  });
+
+  it("shows the MOHUA-specific subtitle and a Last Active column", () => {
+    cy.contains("Manage who has access to the MoHUA XVI FC workspace.").should("be.visible");
+    cy.get("th").should("contain.text", "Last Active");
+  });
+
+  it("marks the logged-in user's own row with a You badge, no edit, and a dash for actions", () => {
+    cy.contains("tr", MOHUA_USER_ID).within(() => {
+      cy.contains("You").should("be.visible");
+      cy.contains("Admin").should("be.visible");
+      cy.get("button.role-edit-btn").should("not.exist");
+      cy.get("td").last().should("contain.text", "—");
+    });
+  });
+
+  it("opens the Add Member form with a MOHUA-specific email placeholder", () => {
+    cy.contains("button", "Add Member").click({ force: true });
+    cy.get('input[placeholder="official@mohua.gov.in"]').should("be.visible");
+    cy.contains("button", "Cancel").click({ force: true });
+  });
+
+  it("opens the Role Permission Matrix with MOHUA/state-oriented permissions", () => {
+    cy.contains("button", "Permission matrix").click({ force: true });
+    cy.contains("Role Permission Matrix").should("be.visible");
+    [
+      "View status and reports",
+      "View dashboards",
+      "Review state submissions",
+      "Send reminders to states",
+      "Request information from states",
+      "Approve / Reject submissions",
+      "Issue Office Memorandum (OM)",
+      "Final submit to DoE",
+      "Manage team",
+    ].forEach((label) => {
+      cy.contains(label).should("be.visible");
+    });
+  });
+
+  it("Reviewer CANNOT approve/reject submissions on the MOHUA matrix (Admin-only)", () => {
+    cy.contains("button", "Permission matrix").click({ force: true });
+    cy.contains("tr", "Approve / Reject submissions").within(() => {
+      cy.get("td").eq(1).find(".perm-dot--yes").should("exist"); // Admin column (td[0] is the row label)
+      cy.get("td").eq(2).find(".perm-dot--no").should("exist"); // Reviewer column: not allowed
+    });
+  });
+});
+
+// -----------------------------------------------------------------------
+// Forgot / Reset Password — step 1 only (verify account)
+//
+// Step 2 (OTP + new password) is not covered here: reaching it requires
+// submitting a real account identifier, which sends a real OTP SMS to a
+// real masked phone number on every run, including the daily scheduled CI
+// run. Every test below only exercises step 1 and never submits a real,
+// registered identifier — so nothing here ever triggers that side effect.
+// -----------------------------------------------------------------------
+
+function visitResetPassword() {
+  cy.visit("/fc/auth/reset-password/16thFC");
+}
+
+describe("XVI-FC Grant | Forgot / Reset Password — step 1", () => {
+  beforeEach(() => {
+    visitResetPassword();
+  });
+
+  it("defaults to ULB and shows the census-code field", () => {
+    cy.contains("Reset Password").should("be.visible");
+    cy.contains("Verify your ULB account").should("be.visible");
+    cy.get('input[placeholder="Enter ULB or Census Code"]').should("be.visible");
+  });
+
+  it("requires the ULB code before continuing", () => {
+    cy.contains("button", "Continue").click({ force: true });
+    cy.contains("ULB Code / Census Code is required.").should("be.visible");
+  });
+
+  it("switches to STATE/MOHUA and updates the heading + placeholder to email", () => {
+    cy.contains("button.role-pill", "STATE").click({ force: true });
+    cy.contains("Verify your State account").should("be.visible");
+    cy.get('input[placeholder="Enter your registered email"]').should("be.visible");
+
+    cy.contains("button.role-pill", "MOHUA").click({ force: true });
+    cy.contains("Verify your MoHUA account").should("be.visible");
+    cy.get('input[placeholder="Enter your registered email"]').should("be.visible");
+  });
+
+  it("'Back to Login' returns to the main sign-in screen", () => {
+    cy.contains("Back to Login").click({ force: true });
+    cy.url().should("eq", `${Cypress.config("baseUrl")}/fc/auth/login/16thFC`);
   });
 });
