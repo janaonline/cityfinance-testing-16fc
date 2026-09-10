@@ -5,3 +5,4 @@ cypress.config.ts
 cypress/videos
 cypress/screenshots
 cypress/downloads
+cypress/tmp

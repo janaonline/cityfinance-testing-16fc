@@ -17,6 +17,9 @@
  * what it does, ideally on a disposable ULB.
  */
 
+export {}; // Makes this file its own module so top-level declarations
+           // don't collide with same-named ones in other spec files.
+
 const XVFCULB_ID = Cypress.env("XVFCULB_ID");
 const XVIFCULB_pass = Cypress.env("XVIFCULB_pass");
 
