@@ -12,7 +12,7 @@
  * edit-mode UI is still exercised. Every write is blocked and the afterEach
  * fails the test if one is attempted.
  */
-import { blockWrites, loginAsState, visitStatePage } from '../../support/xvifcState';
+import { blockWrites, loginAsState, visitStatePage } from '../../support/xvifcSession';
 
 export {}; // Makes this file its own module so top-level declarations
 // don't collide with other specs.

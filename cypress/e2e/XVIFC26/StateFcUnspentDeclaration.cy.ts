@@ -15,7 +15,7 @@
  * clicked after a change: with unsaved changes it becomes "Save & download",
  * which saves a draft without a confirm dialog.
  */
-import { blockWrites, loginAsState, visitStatePage } from '../../support/xvifcState';
+import { blockWrites, loginAsState, visitStatePage } from '../../support/xvifcSession';
 
 export {}; // Makes this file its own module so top-level declarations
 // don't collide with other specs.

@@ -16,7 +16,7 @@
  * detail page is opened (opening a draft that has a signed letter can rebuild
  * and store its merged PDF server-side).
  */
-import { blockWrites, loginAsState, visitStatePage } from '../../support/xvifcState';
+import { blockWrites, loginAsState, visitStatePage } from '../../support/xvifcSession';
 
 export {}; // Makes this file its own module so top-level declarations
 // don't collide with other specs.

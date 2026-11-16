@@ -15,7 +15,7 @@
  * auto-POST validate-excel, so only files the client rejects up front are
  * used. Save / Final Submit are only taken as far as their confirm dialog.
  */
-import { blockWrites, loginAsState, visitStatePage } from '../../support/xvifcState';
+import { blockWrites, loginAsState, visitStatePage } from '../../support/xvifcSession';
 
 export {}; // Makes this file its own module so top-level declarations
 // don't collide with other specs.

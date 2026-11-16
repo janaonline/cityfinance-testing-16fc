@@ -1,0 +1,88 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 3032 >>
+stream
+BT /F1 9 Tf 40 800 Td 13 TL
+(TEST MUNICIPAL CORPORATION) Tj T*
+(Name of ULB: Test    State: TEST STATE) Tj T*
+(CASH FLOW STATEMENT FOR THE YEAR ENDED 31ST MARCH 2025) Tj T*
+(Financial Year: 2024-25    \(Audited Financial Statements\)) Tj T*
+(\(Amount in Rupees\)) Tj T*
+() Tj T*
+(Particulars                                       FY 2024-25    FY 2023-24) Tj T*
+(--------------------------------------------------------------------------) Tj T*
+(A. CASH FLOWS FROM OPERATING ACTIVITIES) Tj T*
+(Excess of Income over Expenditure                1,40,00,000   1,20,00,000) Tj T*
+(Add: Depreciation                                1,20,00,000     96,00,000) Tj T*
+(Add: Interest and Finance Charges                  18,00,000     20,00,000) Tj T*
+(Decrease/\(Increase\) in Receivables                 18,00,000    -12,00,000) Tj T*
+(Increase in Current Liabilities and Provisions     15,00,000     11,00,000) Tj T*
+(Net Cash from Operating Activities \(A\)           3,11,00,000   2,35,00,000) Tj T*
+() Tj T*
+(B. CASH FLOWS FROM INVESTING ACTIVITIES) Tj T*
+(Purchase of Fixed Assets / Capital Works        -2,90,00,000  -2,40,00,000) Tj T*
+(Investments made                                  -20,00,000    -15,00,000) Tj T*
+(Net Cash used in Investing Activities \(B\)       -3,10,00,000  -2,55,00,000) Tj T*
+() Tj T*
+(C. CASH FLOWS FROM FINANCING ACTIVITIES) Tj T*
+(Grants received for capital works                  78,00,000     60,00,000) Tj T*
+(Repayment of Loans                                -20,00,000    -20,00,000) Tj T*
+(Interest paid                                      -8,00,000     -3,00,000) Tj T*
+(Net Cash from Financing Activities \(C\)             50,00,000     37,00,000) Tj T*
+(--------------------------------------------------------------------------) Tj T*
+(Net Increase in Cash and Bank \(A+B+C\)              51,00,000     17,00,000) Tj T*
+(Cash and Bank Balance at the beginning of year   1,25,00,000   1,08,00,000) Tj T*
+(Cash and Bank Balance at the end of year         1,76,00,000   1,25,00,000) Tj T*
+ET
+q
+0.13 0.2 0.62 RG 0.13 0.2 0.62 rg
+2 w
+178 130 m 178 162.0334 152.0334 188 120 188 c 87.9666 188 62 162.0334 62 130 c 62 97.9666 87.9666 72 120 72 c 152.0334 72 178 97.9666 178 130 c S
+1 w
+170 130 m 170 157.615 147.615 180 120 180 c 92.38499999999999 180 70 157.615 70 130 c 70 102.38499999999999 92.38499999999999 80 120 80 c 147.615 80 170 102.38499999999999 170 130 c S
+BT /F2 6.5 Tf 88.8 150 Td (ABC & ASSOCIATES) Tj ET
+BT /F2 9 Tf 95.7 134 Td (CHARTERED) Tj ET
+BT /F2 9 Tf 90.3 122 Td (ACCOUNTANTS) Tj ET
+BT /F2 7 Tf 96.9 104 Td (FRN 123456W) Tj ET
+0.05 0.1 0.55 RG 1.6 w 1 J 1 j
+330 150 m 340 185 352 118 366 160 c 374 186 384 128 398 152 c 410 172 418 132 432 150 c 444 166 456 140 470 156 c 480 168 492 150 512 158 c S
+1.1 w 338 136 m 380 128 440 132 508 140 c S
+Q
+BT /F1 8 Tf 300 112 Td 11 TL
+(CA A. B. Example, Partner \(M.No. 112233\)) Tj T*
+(For ABC & Associates, Chartered Accountants) Tj T*
+(FRN 123456W   UDIN: 25112233BKABCD1234) Tj T*
+(Place: TEST STATE   Date: 30/09/2025) Tj T*
+ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000003335 00000 n 
+0000003403 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3478
+%%EOF
