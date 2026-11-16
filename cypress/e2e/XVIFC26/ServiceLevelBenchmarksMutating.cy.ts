@@ -135,6 +135,52 @@ describe("XVI-FC Grant | ULB — SLB full form + Save as Draft (mutates shared U
   });
 });
 
+describe("XVI-FC Grant | ULB — SLB Actual vs Target: full-form validation on Save as Draft (mutates shared ULB state)", () => {
+  beforeEach(() => {
+    loginAsUlb();
+    openSlbForm();
+  });
+
+  // Proves the direction-aware actual-vs-target rule (see
+  // SLBActualTargetDirection.cy.ts for the field-level, non-mutating
+  // coverage of this rule) is also enforced by the full-form validation
+  // pass that runs on "Save as Draft", not just on blur.
+  it("re-validates a higher-is-better indicator (#1) on Save as Draft and blocks the save", () => {
+    actualField("perCapitaWaterSupply").clear().type("20");
+    targetField("perCapitaWaterSupply").clear().type("10");
+
+    cy.get('[data-cy="slb-submit-test"]').click();
+
+    cy.contains("Please correct the errors in the form before saving as draft.").should(
+      "be.visible"
+    );
+    cy.contains("Actual value cannot exceed the target value.").should("be.visible");
+
+    // Restore, since this describe block's other tests share the same
+    // account and the next full-form save should not be blocked by this.
+    actualField("perCapitaWaterSupply").clear().type("10");
+    targetField("perCapitaWaterSupply").clear().type("10");
+  });
+
+  it("does NOT flag #7 NRW on a full-form Save as Draft pass when actual is above target", () => {
+    actualField("nonRevenueWater").clear().type("20");
+    targetField("nonRevenueWater").clear().type("10");
+
+    cy.get('[data-cy="slb-submit-test"]').click();
+
+    // Other required fields may still block the save at this point —
+    // that's expected and not what this test is checking; it only
+    // confirms NRW itself was never flagged as out of order.
+    cy.get('[data-cy="nonRevenueWater_actual-test"]')
+      .parents("tr")
+      .within(() => {
+        cy.contains("cannot exceed").should("not.exist");
+      });
+
+    actualField("nonRevenueWater").clear().type("10"); // restore
+  });
+});
+
 describe("XVI-FC Grant | ULB — SLB final submission to State DMA (mutates shared ULB state — skipped by default)", () => {
   beforeEach(() => {
     loginAsUlb();
