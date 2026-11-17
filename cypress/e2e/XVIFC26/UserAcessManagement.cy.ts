@@ -66,7 +66,7 @@ describe("XVI-FC Grant | Login (ULB)", () => {
     cy.contains('button', 'Sign In').click();
     // The error banner fades in via a CSS transition, so give it a little
     // longer than the default retry window to settle before asserting.
-    cy.contains('Census Code is required.', { timeout: 12000 }).should('be.visible');
+    cy.contains('Census Code is required.', { timeout: 12000 }).scrollIntoView().should('be.visible');
   });
 
   // The backend returns the same generic message for an unregistered
@@ -78,7 +78,7 @@ describe("XVI-FC Grant | Login (ULB)", () => {
     cy.get(IDENTIFIER_INPUT).type('435673', { force: true });
     cy.get(PASSWORD_INPUT).type('someRandomPassword1', { force: true, log: false });
     cy.contains('button', 'Sign In').click();
-    cy.contains('Invalid ULB Code/Census Code or password', { timeout: 12000 }).should('be.visible');
+    cy.contains('Invalid ULB Code/Census Code or password', { timeout: 12000 }).scrollIntoView({ offset: { top: -200, left: 0 } }).should('be.visible');
   });
 
   // Uses a random, almost-certainly-unregistered census code rather than a
@@ -95,7 +95,7 @@ describe("XVI-FC Grant | Login (ULB)", () => {
     cy.get(PASSWORD_INPUT).type('ulb@1234', { force: true, log: false });
     cy.contains('button', 'Sign In').click();
 
-    cy.contains('Invalid ULB Code/Census Code or password', { timeout: 12000 }).should('be.visible');
+    cy.contains('Invalid ULB Code/Census Code or password', { timeout: 12000 }).scrollIntoView({ offset: { top: -200, left: 0 } }).should('be.visible');
   });
 
   it('logs in successfully with a valid ULB census code + password', () => {

@@ -13,7 +13,7 @@ const PASSWORD_INPUT = 'input[formcontrolname="password"]';
 const BASE_KEY = 'cy_xvifc_workspace_base';
 const ULB_DETAILS_KEY = 'xvifc_ulb_details';
 
-function login(role: 'STATE' | 'ULB', identifier: string, password: string) {
+function login(role: 'STATE' | 'ULB' | 'MOHUA', identifier: string, password: string) {
   cy.session(
     [role, identifier],
     () => {
@@ -62,6 +62,10 @@ export function loginAsState() {
 
 export function loginAsUlb() {
   login('ULB', Cypress.env('XVFCULB_ID'), Cypress.env('XVIFCULB_pass'));
+}
+
+export function loginAsMohua() {
+  login('MOHUA', Cypress.env('MOHUA_USER_ID'), Cypress.env('MOHUA_PASSWORD'));
 }
 
 /** Visits a page of the logged-in workspace, e.g. visitWorkspacePage('sfc-status'). */

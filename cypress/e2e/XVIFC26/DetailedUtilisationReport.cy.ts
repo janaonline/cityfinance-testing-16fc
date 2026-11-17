@@ -29,36 +29,15 @@
  * guard, every test here fails if the page sends any non-auth write request.
  */
 
+import { loginAsUlb, visitWorkspacePage } from '../../support/xvifcSession';
+
 export {}; // Makes this file its own module so top-level declarations
            // don't collide with same-named ones in other spec files.
 
-const XVFCULB_ID = Cypress.env("XVFCULB_ID");
-const XVIFCULB_pass = Cypress.env("XVIFCULB_pass");
 
-const IDENTIFIER_INPUT = 'input[formcontrolname="identifier"]';
-const PASSWORD_INPUT = 'input[formcontrolname="password"]';
 const FILE_INPUT = 'app-dur > input[type="file"]';
 const UPLOAD_ROW = '.dur-upload-row';
 const UPLOAD_BUTTON_TEXT = /^\s*(Re-upload|Upload)\s*$/;
-
-function loginAsUlb(censusCode = XVFCULB_ID, password = XVIFCULB_pass) {
-  cy.visit("/fc/auth/login/16thFC");
-  cy.contains('span.role-card__label', 'ULB').click();
-  cy.get(IDENTIFIER_INPUT).type(censusCode, { force: true });
-  cy.get(PASSWORD_INPUT).should('be.visible').click().type(password, { force: true, log: false });
-  cy.contains('button', 'Sign In').click();
-
-  cy.contains(/Continue|People and Roles/, { timeout: 20000 })
-    .invoke('text')
-    .then((text: string) => {
-      if (text.includes('Continue')) {
-        cy.contains(/Continue|People and Roles/).click();
-      }
-    });
-  // Wait until we're inside a year workspace — the year picker also shows
-  // "2026-27", so matching that text alone races the Continue click.
-  cy.location('pathname', { timeout: 20000 }).should('match', /\/fc\/xvifc\/[a-f0-9]{24}\//);
-}
 
 // Navigates directly via the workspace's own URL — consistent with the SLB
 // and PFMS specs.
@@ -67,11 +46,7 @@ function openDurForm() {
   // Upload/Re-upload buttons render only after the action gates load;
   // clicking before then hits a row that is about to re-render.
   cy.intercept('GET', '**/api/v2/xvi-fc/dur/action-gates*').as('durGates');
-  cy.url().then((currentUrl) => {
-    const match = currentUrl.match(/^(.*\/fc\/xvifc\/[^/]+)\//);
-    const workspaceBase = match ? match[1] : currentUrl.replace(/\/[^/]*$/, '');
-    cy.visit(`${workspaceBase}/dur`);
-  });
+  visitWorkspacePage('dur');
   cy.wait(['@durData', '@durGates'], { timeout: 20000 });
   cy.contains('h1', 'Detailed Utilisation Report', { timeout: 20000 }).should('be.visible');
   cy.get(UPLOAD_ROW).should('have.length', 2);
