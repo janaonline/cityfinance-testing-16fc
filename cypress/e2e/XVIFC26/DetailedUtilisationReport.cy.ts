@@ -145,6 +145,10 @@ describe("XVI-FC Grant | ULB — DUR form structure", () => {
           if (chip.length) {
             cy.get('.chip-filename').invoke('text').should('match', /\.pdf$/i);
             cy.get('.file-chip').invoke('text').should('match', /PASSED|FAILED/);
+          } else if ($row.hasClass('dur-upload-row--failed')) {
+            // A failed file. After a failed re-upload (TS-838) the ULB must ask for a manual
+            // review instead of re-uploading, so Re-upload may be hidden.
+            cy.root().invoke('text').should('match', /FAILED/).and('match', /\.pdf/i);
           } else {
             cy.contains('button', UPLOAD_BUTTON_TEXT).scrollIntoView().should('be.visible');
           }

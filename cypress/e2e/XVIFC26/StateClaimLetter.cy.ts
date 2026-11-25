@@ -31,10 +31,19 @@ function openClaimLetterList() {
   cy.wait('@history').its('response.body').as('historyBody');
 }
 
-/** Mirrors canCreateNewClaim() in claim-letter-list.component.ts. */
+/**
+ * Mirrors canCreateNewClaim() in claim-letter-list.component.ts. Since TS-1256
+ * (parallel claim letters) a letter in draft or under MoHUA review no longer
+ * blocks a new one: only the state gate, eligible ULBs and free slots count.
+ */
 function canStartClaim(s: any): boolean {
   return Boolean(s.stateLevelGate?.passed) && (s.ulbReadiness?.eligible ?? 0) > 0
-    && s.batchSlotsUsed < s.batchSlotsMax && s.activeBatchNumber == null;
+    && s.batchSlotsUsed < s.batchSlotsMax;
+}
+
+/** The status label the State sees: SO review (15) reads as under MoHUA review. */
+function historyStatusLabel(row: any): string {
+  return row.currentFormStatus === 15 ? 'Under Review by MoHUA' : row.currentFormStatusLabel;
 }
 
 beforeEach(() => {
@@ -62,7 +71,7 @@ describe('XVI-FC Grant | STATE — Generate Claim Letter list', () => {
       } else {
         cy.get('[data-cy="claim-letter-new-button"]').should('be.disabled');
         cy.get('[data-cy="claim-letter-new-disabled-reason"]').should('be.visible').invoke('text')
-          .should('match', /eligibility conditions|No ULBs currently meet|claim batch slots|Only one claim batch|currently unavailable/);
+          .should('match', /eligibility conditions|No ULBs currently meet|claim letters for this installment are in use|currently unavailable/);
       }
     });
   });
@@ -132,10 +141,137 @@ describe('XVI-FC Grant | STATE — Generate Claim Letter list', () => {
           .and('contain.text', "No claim letters yet. Start a new claim once you're eligible.");
         return;
       }
-      ['Batch #', 'Version', 'Status', 'ULBs', 'Claimed Total', 'Submitted', 'Action']
+      ['Batch #', 'Status', 'ULBs', 'Claimed Total', 'Submitted', 'Last activity', 'Action']
         .forEach((h) => cy.contains('th', h).should('exist'));
       cy.get('[data-cy="claim-letter-row"]').should('have.length', Math.min(rows.length, 10));
     });
+  });
+});
+
+describe('XVI-FC Grant | STATE — Parallel claim letters (TS-1256)', () => {
+  beforeEach(() => openClaimLetterList());
+
+  it('a letter under MoHUA review does not block a new claim', function () {
+    cy.get('@historyBody').then((body: any) => {
+      const underReview = (body.data ?? []).filter((r: any) => historyStatusLabel(r) === 'Under Review by MoHUA');
+      if (!underReview.length) this.skip();
+      cy.get('@summary').then((s: any) => {
+        const gateOk = Boolean(s.stateLevelGate?.passed) && (s.ulbReadiness?.eligible ?? 0) > 0;
+        if (!gateOk || s.batchSlotsUsed >= s.batchSlotsMax) this.skip();
+        cy.get('[data-cy="claim-letter-new-button"]').should('be.enabled');
+        cy.get('[data-cy="claim-letter-new-disabled-reason"]').should('not.exist');
+      });
+    });
+  });
+
+  it("shows each letter's batch label and status as the API sends them", function () {
+    cy.get('@historyBody').then((body: any) => {
+      const rows = (body.data ?? []).slice(0, 10);
+      if (!rows.length) this.skip();
+      rows.forEach((r: any, i: number) => {
+        const batch = r.resubmissionNumber > 0 ? `${r.batchNumber}-R${r.resubmissionNumber}` : String(r.batchNumber);
+        cy.get('[data-cy="claim-letter-row"]').eq(i).within(() => {
+          cy.get('td').eq(0).invoke('text').invoke('trim').should('eq', batch);
+          cy.get('td').eq(1).invoke('text').invoke('trim').should('eq', historyStatusLabel(r));
+          cy.get('td').eq(2).invoke('text').invoke('trim').should('eq', String(r.ulbCount));
+        });
+      });
+    });
+  });
+
+  it('the history total counts every letter, returned ones included', function () {
+    cy.get('@historyBody').then((body: any) => {
+      const total = body.meta?.total ?? (body.data ?? []).length;
+      if (!total) this.skip();
+      cy.get('[data-cy="claim-letter-history-range"]').should('contain.text', String(total));
+    });
+  });
+
+  it('filters the history to returned letters', function () {
+    cy.get('@historyBody').then((body: any) => {
+      if (!(body.data ?? []).length) this.skip();
+    });
+    cy.get('[data-cy="claim-letter-history-status-filter"]').click();
+    ['All Statuses', 'In Progress', 'Under Review by MoHUA', 'Returned for Correction', 'Acknowledged by MoHUA', 'Discarded']
+      .forEach((label) => cy.contains('mat-option', label).should('exist'));
+    cy.contains('mat-option', 'Returned for Correction').click();
+    cy.wait('@history').then(({ request, response }) => {
+      expect(request.url).to.include('status=RETURNED');
+      const rows = response!.body.data ?? [];
+      if (!rows.length) {
+        cy.get('[data-cy="claim-letter-empty-state"]').should('contain.text', 'No claim letters match these filters.');
+      } else {
+        cy.get('[data-cy="claim-letter-row"]').should('have.length', Math.min(rows.length, 10));
+      }
+    });
+    cy.get('[data-cy="claim-letter-history-reset-filters"]').click();
+    cy.wait('@history').its('request.url').should('not.include', 'status=');
+  });
+});
+
+describe('XVI-FC Grant | STATE — ULB picker: ULBs already in a letter (TS-1256)', () => {
+  beforeEach(() => {
+    cy.intercept('GET', '**/api/v2/xvi-fc/state/claim-letter/*/*/1/claim-context').as('context');
+    visitStatePage('claim-letter/new');
+    cy.wait('@context').its('response.body.data').as('context');
+  });
+
+  // The picker loads the ULB options once and filters them in the browser.
+  function openPicker(ctx: Mocha.Context) {
+    cy.get('@context').then((c: any) => {
+      if (!c.canCreate) ctx.skip();
+    });
+    cy.intercept('GET', '**/api/v2/xvi-fc/state/claim-letter/*/*/1/ulb-options*').as('ulbOptions');
+    cy.get('[data-cy="claim-ulb-table-add"]').click();
+    cy.wait('@ulbOptions').its('response.body.data').as('options');
+    cy.contains('Select ULBs').should('be.visible');
+  }
+
+  it('the API never marks a ULB in another letter as eligible', function () {
+    openPicker(this);
+    cy.get('@options').then((options: any) => {
+      (options ?? []).forEach((o: any) => {
+        if (o.claimedInBatch) expect(o.eligible, `${o.ulbName} (in another letter) eligible`).to.be.false;
+      });
+    });
+    cy.get('button[aria-label="Close dialog"]').click();
+  });
+
+  it('shows ULBs in another letter as "In Batch #N" and does not let them be picked', function () {
+    openPicker(this);
+    cy.get('[data-cy="claim-letter-ulb-picker-eligibility-filter"]').contains('button', 'In other batches').click();
+    cy.get('@options').then((options: any) => {
+      const claimed = (options ?? []).filter((o: any) => o.claimedInBatch);
+      if (!claimed.length) {
+        cy.get('[data-cy="claim-letter-ulb-picker-empty"]').should('contain.text', 'No ULBs are in another batch.');
+        return;
+      }
+      cy.get('[data-cy="claim-letter-ulb-picker-row"]').should('have.length', Math.min(claimed.length, 20));
+      claimed.slice(0, 20).forEach((o: any) => {
+        cy.contains('[data-cy="claim-letter-ulb-picker-row"]', o.ulbName).within(() => {
+          const label = o.claimedInBatch.batchNumber ? `In Batch #${o.claimedInBatch.batchNumber}` : 'In another batch';
+          cy.get('[data-cy="claim-letter-ulb-picker-claimed-badge"]').invoke('text').invoke('trim').should('eq', label);
+          cy.get('[data-cy="claim-letter-ulb-picker-checkbox"]').should('be.disabled');
+        });
+      });
+    });
+    cy.get('[data-cy="claim-letter-ulb-picker-confirm"]').should('be.disabled');
+    cy.get('button[aria-label="Close dialog"]').click();
+  });
+
+  it('lists only selectable ULBs under "Eligible"', function () {
+    openPicker(this);
+    cy.get('[data-cy="claim-letter-ulb-picker-eligibility-filter"]').contains('button', /^\s*Eligible\s*$/).click();
+    cy.get('@options').then((options: any) => {
+      const eligible = (options ?? []).filter((o: any) => o.eligible);
+      if (!eligible.length) {
+        cy.get('[data-cy="claim-letter-ulb-picker-empty"]').should('contain.text', 'No eligible ULBs.');
+        return;
+      }
+      cy.get('[data-cy="claim-letter-ulb-picker-row"]').should('have.length', Math.min(eligible.length, 20));
+      cy.get('[data-cy="claim-letter-ulb-picker-claimed-badge"]').should('not.exist');
+    });
+    cy.get('button[aria-label="Close dialog"]').click();
   });
 });
 
