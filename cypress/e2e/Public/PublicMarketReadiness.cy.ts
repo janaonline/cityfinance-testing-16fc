@@ -343,7 +343,17 @@ describe('Public | Market Readiness Assessment', () => {
       cy.contains('p.faq-answer', 'It is not a creditworthiness assessment').should('be.visible');
     });
     cy.contains('mat-expansion-panel', 'What is the basis for this assessment and scoring logic?').as('basis');
-    cy.get('@basis').find('mat-expansion-panel-header').should('have.attr', 'aria-expanded', 'false').click();
+    cy.get('@basis').find('mat-expansion-panel-header').should('have.attr', 'aria-expanded', 'false');
+    // The page is server-rendered: a click that lands before hydration is dropped, so retry until it opens.
+    const expand = (attempts = 5) => {
+      cy.get('@basis').find('mat-expansion-panel-header').click();
+      cy.get('@basis').find('mat-expansion-panel-header').then(($h) => {
+        if ($h.attr('aria-expanded') === 'true') return;
+        if (attempts <= 1) throw new Error('accordion panel never expanded');
+        expand(attempts - 1);
+      });
+    };
+    expand();
     cy.get('@basis').find('mat-expansion-panel-header').should('have.attr', 'aria-expanded', 'true');
     cy.get('@basis').find('i.faq-icon').should('have.class', 'bi-x');
     cy.get('@basis').contains('a', 'CWAS-CRDF-CEPT Creditworthiness Assessment Framework (April 2024)')
