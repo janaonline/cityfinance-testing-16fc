@@ -13,12 +13,14 @@ const PASSWORD_INPUT = 'input[formcontrolname="password"]';
 const BASE_KEY = 'cy_xvifc_workspace_base';
 const ULB_DETAILS_KEY = 'xvifc_ulb_details';
 
-function login(role: 'STATE' | 'ULB' | 'MOHUA', identifier: string, password: string) {
+function login(role: 'STATE' | 'ULB' | 'MOHUA' | 'ADMIN' | 'ADC', identifier: string, password: string) {
   cy.session(
     [role, identifier],
     () => {
       cy.visit('/fc/auth/login/16thFC');
-      cy.contains('span.role-card__label', role).click();
+      // The Portal Admin has no card of its own: it signs in through MOHUA and the server returns role ADMIN.
+      // An ADC user (STATE_ADC) signs in through the STATE card.
+      cy.contains('span.role-card__label', role === 'ADMIN' ? 'MOHUA' : role === 'ADC' ? 'STATE' : role).click();
       cy.get(IDENTIFIER_INPUT).type(identifier, { force: true });
       cy.get(PASSWORD_INPUT).type(password, { force: true, log: false });
       cy.contains('button', 'Sign In').click();
@@ -66,6 +68,16 @@ export function loginAsUlb() {
 
 export function loginAsMohua() {
   login('MOHUA', Cypress.env('MOHUA_USER_ID'), Cypress.env('MOHUA_PASSWORD'));
+}
+
+/** An ADC Admin/Reviewer (role STATE_ADC): ADC_USER_ID / ADC_PASSWORD in .env. */
+export function loginAsAdc() {
+  login('ADC', Cypress.env('ADC_USER_ID'), Cypress.env('ADC_PASSWORD'));
+}
+
+/** The Portal Admin (role ADMIN): ADC management, ULB registration, OCR manual review. */
+export function loginAsAdmin() {
+  login('ADMIN', Cypress.env('ADMIN_USER_ID'), Cypress.env('ADMIN_PASSWORD'));
 }
 
 /** Visits a page of the logged-in workspace, e.g. visitWorkspacePage('sfc-status'). */

@@ -307,7 +307,7 @@ describe('Public | State dashboard', () => {
           cy.get('p.text-secondary').invoke('text').should((t) => expect(norm(t)).to.eq(c.label));
         });
       });
-      cy.get('app-state app-info-cards .card').eq(0).find('i.bi-info-circle').trigger('mouseenter');
+      cy.get('app-state app-info-cards .card').eq(0).find('i.bi-info-circle').scrollIntoView().trigger('mouseenter', { force: true });
       cy.get('.mat-mdc-tooltip', LONG).invoke('text').should((t) => expect(norm(t)).to.eq(norm(res.result[0].tooltip)));
       cy.contains('p', 'Last updated on:').invoke('text').then((t) => {
         expect(mediumDates(res.lastModifiedAt).some((d) => t.includes(d))).to.be.true;
@@ -460,9 +460,9 @@ describe('Public | State dashboard', () => {
     waitCall(tabsGet, (c) => c.query.financialYear === target, 'bar for year');
 
     // Category tooltip + National Avg → state-dashboard-averages (no stateId).
-    cy.contains(`${FI} mat-form-field`, 'Category').trigger('mouseenter');
+    cy.contains(`${FI} mat-form-field`, 'Category').scrollIntoView().trigger('mouseenter', { force: true });
     cy.get('.mat-mdc-tooltip', LONG).should('contain.text', 'Select an option to view average data');
-    cy.contains(`${FI} mat-form-field`, 'Category').trigger('mouseleave');
+    cy.contains(`${FI} mat-form-field`, 'Category').trigger('mouseleave', { force: true });
     reset(post);
     cy.contains(`${FI} mat-form-field`, 'Category').find('mat-select').click();
     cy.get('mat-option').should(($o) => {

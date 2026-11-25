@@ -101,7 +101,9 @@ Staging runs two apps. The new app serves `/home`, `/municipal-data/...` and `/a
 |---|---|
 | ULB | `BankAccountPFMS`, `DetailedUtilisationReport`, `ServiceLevelBenchmarks`, `SLBActualTargetDirection`, `UlbConditions`, `UlbFinancialStatements`, `UserAcessManagement` |
 | STATE | `StateRequirements`, `StateSfcStatus`, `StateElectedBodyStatus`, `StateUlbWiseAllocation`, `StateFcUnspentDeclaration`, `StateGrantTransferCertificate`, `StateClaimLetter`, `StateUlbSubmissions` |
-| MoHUA | `MohuaOverview`, `MohuaClaimsSubmissions`, `MohuaGenerateOm`, `MohuaOmHistory`, `MohuaStateReview` |
+| Portal Admin | `AdminAdc` (read-only), `AdminAdcMutating` |
+| ADC user | `AdcDashboard` (needs ADC_USER_ID / ADC_PASSWORD) |
+| MoHUA | `MohuaOverview`, `MohuaClaimsSubmissions`, `MohuaClaimEligibility`, `MohuaGenerateOm`, `MohuaOmHistory`, `MohuaStateReview` |
 
 Login is shared: `cypress/support/xvifcSession.ts` logs in once per account and reuses the session across specs.
 
@@ -116,6 +118,10 @@ STATE_USER_ID=
 STATE_PASSWORD=
 MOHUA_USER_ID=
 MOHUA_PASSWORD=
+ADMIN_USER_ID=
+ADMIN_PASSWORD=
+ADC_USER_ID=
+ADC_PASSWORD=
 ```
 
 Staging locks an account after repeated failed logins, so don't run the login tests in a tight loop.

@@ -58,6 +58,12 @@ const CHAPTERS: { link: string; first: string; second: string; bp: string | null
  */
 function openChapter(link: string) {
   cy.visit(`${LC}/toolkits/introduction`);
+  // App bug (race): the chapter component reads `stateIdsMap` from localStorage
+  // once, when it is created. app.component only stores it after the states API
+  // answers, so a chapter opened before then throws in its template and every
+  // Best Practices card renders blank (no state, no name). Open the chapter only
+  // once the map is stored, as a visitor who doesn't click instantly would.
+  cy.window({ timeout: 20000 }).should((w) => expect(w.localStorage.getItem('stateIdsMap'), 'stateIdsMap stored').to.be.a('string'));
   cy.get(`app-toolkits ul.nav-pills a.nav-link[href$="/toolkits/${link}"]`).click();
   cy.location('pathname').should('eq', `${LC}/toolkits/${link}`);
 }
@@ -279,12 +285,17 @@ describe('Public | Resources — Toolkit "Score Your Performance"', () => {
 
   it('state dropdown lists API states, searches, loads ULBs and Get Started opens the score flow', () => {
     cy.wait('@states').its('response.body.data').then((states: any[]) => {
-      cy.get('app-score-per angular2-multiselect .c-btn').click();
+      // The dropdown can close on its own (e.g. when an overlay pops up), so reopen it before each step.
+      const openStates = () => cy.get('body').then(($b) => {
+        if (!$b.find('.dropdown-list:visible').length) cy.get('app-score-per angular2-multiselect .c-btn').click();
+      });
+      openStates();
       cy.get('.dropdown-list:visible li.pure-checkbox').should('have.length', states.length);
-      // Search inside the dropdown — negative and positive.
+      // Search inside the dropdown — negative and positive. Assert on the open list so a closed dropdown can't pass.
       cy.get('.dropdown-list:visible input.c-input').type('zzqx');
-      cy.get('.dropdown-list:visible li.pure-checkbox:visible').should('have.length', 0);
+      cy.get('.dropdown-list:visible').find('li.pure-checkbox:visible').should('have.length', 0);
       const target = states.find((s) => s.code === 'CG') || states[0];
+      openStates();
       cy.get('.dropdown-list:visible input.c-input').clear().type(target.name);
       cy.contains('.dropdown-list:visible li.pure-checkbox:visible', target.name).click();
       cy.wait('@ulbs').then(({ request, response }) => {
@@ -412,6 +423,7 @@ describe('Public | Resources — Best Practices', () => {
         expect([...$o].map((o) => o.innerText.trim())).to.deep.eq(['All Years', ...sorted]);
       });
       cy.contains('.mat-select-panel mat-option', 'All Years').click();
+      cy.get('mat-select[formcontrolname="year"]').should('contain.text', 'All Years');
       cy.wait('@bp').then(({ request, response }) => {
         expect(qs(request.url).get('year')).to.eq('');
         assertCards(response!.body.data || []);
@@ -466,7 +478,10 @@ describe('Public | Resources — Best Practices', () => {
 
   function selectAllYears() {
     cy.get('mat-select[formcontrolname="year"]').click();
+    // Wait for the panel's open animation; a click mid-animation is ignored and no refetch is sent.
+    cy.get('.mat-select-panel mat-option').should('have.length.greaterThan', 1);
     cy.contains('.mat-select-panel mat-option', 'All Years').click();
+    cy.get('mat-select[formcontrolname="year"]').should('contain.text', 'All Years');
   }
 });
 
